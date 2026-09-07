@@ -24,9 +24,36 @@ const STORAGE_KEYS = {
   ACTIVITIES: 'hentamo_activities',
 };
 
-function getLocal<T>(key: string): T[] {
+const CLEAN_MIGRATION_FLAG = 'hentamo_clean_storage_v1';
+
+// Automatically purge any previous mock/dummy data stored in the browser's localStorage
+if (typeof window !== 'undefined' && !localStorage.getItem(CLEAN_MIGRATION_FLAG)) {
+  Object.values(STORAGE_KEYS).forEach(k => localStorage.removeItem(k));
+  localStorage.removeItem('hentamo_active_project_id');
+  localStorage.setItem(CLEAN_MIGRATION_FLAG, 'true');
+}
+
+const DUMMY_IDS = new Set([
+  'proj-arl', 'proj-ahl', 'proj-atrl',
+  'ver-arl-130', 'ver-arl-140', 'ver-ahl-210',
+  'fg-championship', 'fg-stats', 'fg-wallet',
+  'wi-101', 'wi-102', 'wi-103', 'wi-104', 'wi-105', 'wi-201', 'wi-301', 'wi-302',
+  'tr-1', 'comm-1', 'comm-2', 'act-1', 'act-2', 'act-3'
+]);
+
+function getLocal<T extends { id?: string }>(key: string): T[] {
   const data = localStorage.getItem(key);
-  return data ? JSON.parse(data) : [];
+  if (!data) return [];
+  try {
+    const list: T[] = JSON.parse(data);
+    const cleaned = list.filter(item => !item.id || !DUMMY_IDS.has(item.id));
+    if (cleaned.length !== list.length) {
+      saveLocal(key, cleaned);
+    }
+    return cleaned;
+  } catch {
+    return [];
+  }
 }
 
 function saveLocal<T>(key: string, items: T[]): void {

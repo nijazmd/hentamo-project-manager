@@ -47,6 +47,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
           setActiveProject(found);
           return;
         }
+        localStorage.removeItem(ACTIVE_PROJ_KEY);
       }
 
       if (activeList.length > 0) {
@@ -54,6 +55,7 @@ export const ProjectProvider: React.FC<{ children: React.ReactNode }> = ({ child
         localStorage.setItem(ACTIVE_PROJ_KEY, activeList[0].id);
       } else {
         setActiveProject(null);
+        localStorage.removeItem(ACTIVE_PROJ_KEY);
       }
     } catch (err) {
       console.error('Failed to load projects:', err);
